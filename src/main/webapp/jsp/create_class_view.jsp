@@ -30,7 +30,23 @@
 		<h2>Create Class</h2>
 		<div id="divUpload">
 			<form id="formUpload" action="<%=request.getContextPath() + Paths.CREATE_CLASS%>" class="form-upload" method="post">
-				<input id="className" name="className" type="text" class="form-control" placeholder="Class name" required>
+				<span class="label label-danger" id="invalid_class_name" style="color: white;visibility: hidden">Java class name must be .java</span>
+				<input id="className" onkeyup="validateClassName()" name="className" type="text" class="form-control" placeholder="Class name" required>
+				<input type="hidden" value="<%=request.getParameter("fromAdmin")%>" name="fromAdmin">
+				<script>
+                    function validateClassName() {
+                        let className = document.forms["formUpload"]["className"].value;
+
+                        let regExp = new RegExp('^[a-zA-Z0-9]+\.[j]+[a]+[v]+[a]');
+                        if (regExp.test(className)) {
+                            document.getElementById('invalid_class_name').style.visibility = "hidden";
+                            document.getElementById('upload').disabled = false;
+                        } else {
+                            document.getElementById('invalid_class_name').style.visibility = "visible";
+                            document.getElementById('upload').disabled = true;
+                        }
+                    }
+				</script>
 				<span class="label label-danger" id="invalid_alias" style="color: white;visibility: hidden">Name with no whitespaces or special characters.</span>
 				<input id="classAlias" onkeyup="validateAlias()" name="classAlias" type="text" class="form-control" placeholder="Class alias">
 				<input type="hidden" value="<%=request.getParameter("fromAdmin")%>" name="fromAdmin">

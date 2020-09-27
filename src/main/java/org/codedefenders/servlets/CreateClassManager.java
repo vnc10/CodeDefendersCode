@@ -136,10 +136,9 @@ public class CreateClassManager extends HttpServlet {
         boolean isMockingEnabled = false;
         TestingFramework testingFramework = null;
         AssertionLibrary assertionLibrary = null;
-        boolean shouldPrepareAI = false;
 
         // Alias of the CUT
-        String classAlias = null;
+        String classAlias = request.getParameter("classAlias");
         // Used to check whether multiple CUTs are uploaded.
         final int cutId;
         // Used to check whether mutants have the same name as the class under test.
@@ -162,21 +161,6 @@ public class CreateClassManager extends HttpServlet {
        
         // Get actual parameters, because of the upload component, I can't do
         // request.getParameter before fetching the file
-		
-        //String classAlias = request.getParameter("classAlias");
-        //File dir = new File("/Downloads/");
-        //FileWriter myWriter = new FileWriter(new File(dir, className));
-        //myWriter.write(classCode);
-        //myWriter.close();
-        //logger.warn("User {} tried to upload a class, but class upload is disabled.", className);
-        //logger.warn("User {} tried to upload a class, but class upload is disabled.", classAlias);
-        //logger.warn("User {} tried to upload a class, but class upload is disabled.", classCode);
-        
-        //return;
-        // Splits request parameters by FileItem#isFormField into
-        // upload and file parameters to ensure that all upload parameters
-        // set before storing files.
-
 
         SimpleFile cutFile = null;
         cutFile = new SimpleFile(className);
