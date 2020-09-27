@@ -29,22 +29,35 @@
 	<div class="w-100 up">
 		<h2>Create Class</h2>
 		<div id="divUpload">
-			<form id="formUpload" action="<%=request.getContextPath() + Paths.CREATE_CLASS%>" class="form-upload" method="post" enctype="multipart/form-data">
+			<form id="formUpload" action="<%=request.getContextPath() + Paths.CREATE_CLASS%>" class="form-upload" method="post">
 				<input id="className" name="className" type="text" class="form-control" placeholder="Class name" required>
 				<span class="label label-danger" id="invalid_alias" style="color: white;visibility: hidden">Name with no whitespaces or special characters.</span>
 				<input id="classAlias" onkeyup="validateAlias()" name="classAlias" type="text" class="form-control" placeholder="Class alias">
+				<input type="hidden" value="<%=request.getParameter("fromAdmin")%>" name="fromAdmin">
+				<script>
+                    function validateAlias() {
+                        let classAlias = document.forms["formUpload"]["classAlias"].value;
+
+                        let regExp = new RegExp('^[a-zA-Z0-9]*$');
+                        if (regExp.test(classAlias)) {
+                            document.getElementById('invalid_alias').style.visibility = "hidden";
+                            document.getElementById('upload').disabled = false;
+                        } else {
+                            document.getElementById('invalid_alias').style.visibility = "visible";
+                            document.getElementById('upload').disabled = true;
+                        }
+                    }
+				</script>
 				<!--
 				<input type="checkbox" name="prepareForSingle" value="prepare" style="margin-right:5px;">Generate mutants and tests for single-player mode? (It may take a while...)</input>
 				-->
 				<div>
                     <h3>Upload Class under Test</h3>
-				<textarea type="text" id="fileCreateCUT" name="fileCreateCUT" class="file-loading" required cols="20" rows="20" required >
-				</textarea>
+				<textarea type="text" id="fileCreateCUT" name="fileCreateCUT" class="form-control" rows="20" required></textarea>
 					<br>
 					<span>The class used for games. Mutants are created from and tests are created for this class.</span>
 				</div>
                 <br>
-
 				<div class="form-group">
 					<label for="testingFramework" title="The testing framework used to write tests for this class.">
 						Testing Framework
@@ -69,72 +82,11 @@
 						<%}%>
 					</select>
 				</div>
-
-				<button class="btn btn-light" type="button" data-toggle="collapse" data-target="#collapseAdvanced" aria-expanded="false" aria-controls="collapseExample">
-					Advanced upload options...
-				</button>
-
-
-            <span class="border border-primary">
-                    <div class="collapse" id="collapseAdvanced">
-                        <div>
-                            <h3>Upload Dependencies (optional)</h3>
-                            <span class="file-select">
-                                <input id="fileUploadDependency" name="fileUploadDependency" type="file" class="file-loading" accept=".zip" />
-                            </span>
-                            <br>
-                            <span>
-                                If the class under test has dependencies, upload them as inside a <code>zip</code> file.
-                            </span>
-                        </div>
-                        <div>
-                            <h3>Upload Mutants (optional)</h3>
-                            <span class="file-select">
-                                <input id="fileUploadMutant" name="fileUploadMutant" type="file" class="file-loading" accept=".zip" />
-                            </span>
-                            <br>
-                            <span>
-                                Mutants uploaded with a class under test can be used to initialize games with existing mutants.
-                                Note that all mutants must have the same class name as the class under test and must be uploaded inside a <code>zip</code> file.
-                            </span>
-                        </div>
-                        <div>
-                            <h3>Upload Tests (optional)</h3>
-                            <span class="file-select">
-                                <input id="fileUploadTest" name="fileUploadTest" type="file" class="file-loading" accept=".zip" />
-                            </span>
-                            <br>
-                            <span>
-                                Tests uploaded with a class under test can be used to initialize games with existing tests.
-                                Note that all tests must be uploaded inside a <code>zip</code> file.
-                            </span>
-                        </div>
-                        <br>
-                        <input id="mockingEnabled" type="checkbox" name="enableMocking" value="isMocking" style="margin-right:5px;">Enable Mocking for this class</input>
-                        <br>
-                    </div>
-                </span>
 				<span class="submit-button">
 					<button id="upload" type="submit" class="fileinput-upload-button btn btn-light">
 						Upload
 					</button>
 				</span>
-
-				<input type="hidden" value="<%=request.getParameter("fromAdmin")%>" name="fromAdmin">
-				<script>
-                    function validateAlias() {
-                        let classAlias = document.forms["formUpload"]["classAlias"].value;
-
-                        let regExp = new RegExp('^[a-zA-Z0-9]*$');
-                        if (regExp.test(classAlias)) {
-                            document.getElementById('invalid_alias').style.visibility = "hidden";
-                            document.getElementById('upload').disabled = false;
-                        } else {
-                            document.getElementById('invalid_alias').style.visibility = "visible";
-                            document.getElementById('upload').disabled = true;
-                        }
-                    }
-				</script>
 			</form>
 		</div>
 	</div>

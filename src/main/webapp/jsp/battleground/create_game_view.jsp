@@ -77,8 +77,8 @@
                         <a href="<%=request.getContextPath() + Paths.CLASS_UPLOAD%>" class="text-center new-account">Upload Class</a>
                     </td>
                 <%}%>
-                  	<td width="17%">
-                        <a href="<%=request.getContextPath() + Paths.CREATE_CLASS%>" class="text-center new-account">Create a class</a>
+                    <td width="17%">
+                        <a href="<%=request.getContextPath() + Paths.CREATE_CLASS%>" class="text-center new-account">Create a Class</a>
                     </td>
             </tr>
             <!--

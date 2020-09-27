@@ -54,12 +54,6 @@ public class AdminSystemSettings extends HttpServlet {
                 return "Show or hide the link for user registration.";
             }
         },
-        CREATE_CLASS {
-            @Override
-            public String toString() {
-                return "Show or hide the link for CUT upload.";
-            }
-        },
         CLASS_UPLOAD {
             @Override
             public String toString() {

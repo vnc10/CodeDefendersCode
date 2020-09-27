@@ -128,7 +128,7 @@ public class Constants {
     public static final String GAMES_HISTORY_JSP = "/jsp/games_history.jsp";
     public static final String CLASS_UPLOAD_VIEW_JSP = "/jsp/upload_class_view.jsp";
     public static final String CREATE_CLASS_VIEW_JSP = "/jsp/create_class_view.jsp";
-
+    
     public static final String ADMIN_USER_JSP = "/jsp/admin_user_mgmt.jsp";
     public static final String ADMIN_GAMES_JSP = "/jsp/admin_create_games.jsp";
     public static final String ADMIN_CLASSES_JSP = "/jsp/admin_class_management.jsp";

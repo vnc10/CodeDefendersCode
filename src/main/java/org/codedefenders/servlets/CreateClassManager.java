@@ -54,6 +54,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.FileWriter;
+import java.io.File;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -148,162 +150,41 @@ public class CreateClassManager extends HttpServlet {
         final GameClass cut;
         // flag whether upload is with dependencies or not
         boolean withDependencies = false;
+        
+        String className = request.getParameter("className");
+        
+        String classCode = request.getParameter("fileCreateCUT");
 
+        testingFramework = TestingFramework.valueOf(request.getParameter("testingFramework"));
+        
+        assertionLibrary = AssertionLibrary.valueOf(request.getParameter("assertionLibrary"));
+        
+       
         // Get actual parameters, because of the upload component, I can't do
         // request.getParameter before fetching the file
-        List<FileItem> items;
-        try {
-            if (servletFileUpload == null) {
-                items = new ServletFileUpload(new DiskFileItemFactory()).parseRequest(request);
-            } else {
-                items = servletFileUpload.parseRequest(request);
-            }
-        } catch (FileUploadException e) {
-            logger.error("Failed to upload class. Failed to get file upload parameters.", e);
-            Redirect.redirectBack(request, response);
-            return;
-        }
-
+		
+        //String classAlias = request.getParameter("classAlias");
+        //File dir = new File("/Downloads/");
+        //FileWriter myWriter = new FileWriter(new File(dir, className));
+        //myWriter.write(classCode);
+        //myWriter.close();
+        //logger.warn("User {} tried to upload a class, but class upload is disabled.", className);
+        //logger.warn("User {} tried to upload a class, but class upload is disabled.", classAlias);
+        //logger.warn("User {} tried to upload a class, but class upload is disabled.", classCode);
+        
+        //return;
         // Splits request parameters by FileItem#isFormField into
         // upload and file parameters to ensure that all upload parameters
         // set before storing files.
-        final Map<Boolean, List<FileItem>> parameters = items
-                .stream()
-                .collect(Collectors.partitioningBy(FileItem::isFormField));
-        final List<FileItem> uploadParameters = parameters.get(true);
-        final List<FileItem> fileParameters = parameters.get(false);
 
-        for (FileItem uploadParameter : uploadParameters) {
-            final String fieldName = uploadParameter.getFieldName();
-            final String fieldValue = uploadParameter.getString();
-            logger.debug("Upload parameter {" + fieldName + ":" + fieldValue + "}");
-            switch (fieldName) {
-                case "classAlias":
-                    classAlias = fieldValue;
-                    if (!validateAlias(classAlias)) {
-                        logger.error("Class upload failed. Provided alias '{}' contained whitespaces or special "
-                                + "characters. Aborting.", classAlias);
-                        messages.add("Class upload failed. Alias must not contain whitespaces or special characters.");
-                        abortRequestAndCleanUp(request, response);
-                        return;
-                    }
-                    break;
-                case "prepareForSingle":
-                    // TODO Phil: legacy, will this be used in the future? (look TODO below)
-                    shouldPrepareAI = true;
-                    break;
-                case "enableMocking":
-                    isMockingEnabled = true;
-                    break;
-                case "testingFramework":
-                    testingFramework = TestingFramework.valueOf(fieldValue);
-                    break;
-                case "assertionLibrary":
-                    assertionLibrary = AssertionLibrary.valueOf(fieldValue);
-                    break;
-                default:
-                    logger.warn("Unrecognized parameter: " + fieldName);
-                    break;
-            }
-        }
 
         SimpleFile cutFile = null;
-        SimpleFile dependenciesZipFile = null;
-        SimpleFile mutantsZipFile = null;
-        SimpleFile testsZipFile = null;
-
-        for (FileItem fileParameter : fileParameters) {
-            final String fieldName = fileParameter.getFieldName();
-            final String fileName = FilenameUtils.getName(fileParameter.getName());
-            logger.info("Upload file parameter {" + fieldName + ":" + fileName + "}");
-            if (fileName == null || fileName.isEmpty()) {
-                // even if no file is uploaded, the fieldname is given, but no filename -> skip
-                continue;
-            }
-            byte[] fileContentBytes = fileParameter.get();
-            if (fileContentBytes.length == 0) {
-                logger.error("Class upload failed. Given file {} was empty", fileName);
-                messages.add("Class upload failed. File content for " + fileName
-                        + " could not be read. Please try again.");
-                abortRequestAndCleanUp(request, response);
-                return;
-            }
-
-            switch (fieldName) {
-                case "fileCreateCUT": {
-                    if (cutFile != null) {
-                        // Upload of second CUT? Abort
-                        logger.error("Class upload failed. Multiple classes under test uploaded.");
-                        messages.add("Class upload failed. Multiple classes under test uploaded.");
-                        abortRequestAndCleanUp(request, response);
-                        return;
-                    }
-                    cutFile = new SimpleFile(fileName, fileContentBytes);
-                    break;
-                }
-                case "fileUploadDependency": {
-                    if (dependenciesZipFile != null) {
-                        // Upload of second dependency ZIP file? Abort
-                        logger.error("Class upload failed. Multiple dependency ZIP files uploaded.");
-                        messages.add("Class upload failed. Multiple dependency ZIP files uploaded.");
-                        abortRequestAndCleanUp(request, response);
-                        return;
-                    }
-                    dependenciesZipFile = new SimpleFile(fileName, fileContentBytes);
-                    withDependencies = true;
-                    break;
-                }
-                case "fileUploadMutant": {
-                    if (mutantsZipFile != null) {
-                        // Upload of second mutant ZIP file? Abort
-                        logger.error("Class upload failed. Multiple mutant ZIP files uploaded.");
-                        messages.add("Class upload failed. Multiple mutant ZIP files uploaded.");
-                        abortRequestAndCleanUp(request, response);
-                        return;
-                    }
-                    mutantsZipFile = new SimpleFile(fileName, fileContentBytes);
-                    break;
-                }
-                case "fileUploadTest": {
-                    if (testsZipFile != null) {
-                        // Upload of second test ZIP file? Abort
-                        logger.error("Class upload failed. Multiple test ZIP files uploaded.");
-                        messages.add("Class upload failed. Multiple test ZIP files uploaded.");
-                        abortRequestAndCleanUp(request, response);
-                        return;
-                    }
-                    testsZipFile = new SimpleFile(fileName, fileContentBytes);
-                    break;
-                }
-                default:
-                    logger.warn("Unrecognized parameter: " + fieldName);
-                    break;
-            }
-        }
-
-        if (cutFile == null) {
-            logger.error("Class upload failed. No class under test uploaded.");
-            messages.add("Class upload failed. No class under test uploaded.");
-            abortRequestAndCleanUp(request, response);
-            return;
-        }
-
+        cutFile = new SimpleFile(className);
         final List<JavaFileObject> dependencies = new ArrayList<>();
-        final String fileName = cutFile.fileName;
-        final String fileContent = new String(cutFile.fileContent, Charset.forName("UTF-8")).trim();
-        if (!fileName.endsWith(".java")) {
-            logger.error("Class upload failed. Given file {} was not a .java file.", fileName);
-            messages.add("Class upload failed. The class under test must be a .java file.");
-            abortRequestAndCleanUp(request, response);
-            return;
-        }
-        if (reservedClassNames.contains(fileName)) {
-            logger.error("Class with reserved name uploaded. Aborting.");
-            messages.add("Class upload failed. " + fileName
-                    + " is a reserved class name, please rename your Java class.");
-            abortRequestAndCleanUp(request, response);
-            return;
-        }
+        final String fileName = className;
+        logger.warn("bbb {} ", classCode);
+        final String fileContent = classCode;
+        logger.warn("aaa {} ", fileContent);
         cutFileName = fileName;
         if (fileContent == null) {
             logger.error("Class upload failed. Provided fileContent is null. That shouldn't happen.");
@@ -335,7 +216,6 @@ public class CreateClassManager extends HttpServlet {
 
         final String cutClassFilePath;
         final List<JavaFileReferences> dependencyReferences = new LinkedList<>();
-        if (!withDependencies) {
             try {
                 cutClassFilePath = Compiler.compileJavaFileForContent(cutJavaFilePath, fileContent);
             } catch (CompileException e) {
@@ -352,83 +232,7 @@ public class CreateClassManager extends HttpServlet {
                 abortRequestAndCleanUp(request, response, cutDir, compiledClasses);
                 return;
             }
-        } else {
-            final String zipFileName = dependenciesZipFile.fileName;
-            final byte[] zipFileContent = dependenciesZipFile.fileContent;
 
-            if (!zipFileName.endsWith(".zip")) {
-                logger.error("Class upload failed. Given file {} was not a .zip file.", zipFileName);
-                messages.add("Class upload failed. Dependencies must be provided in a .zip file.");
-                abortRequestAndCleanUp(request, response, cutDir, compiledClasses);
-                return;
-            }
-
-            try {
-                final ZipFile zip = ZipFileUtils.createZip(zipFileContent);
-
-                // The returned list contains the files, but without an actual file path, just names.
-                dependencies.addAll(ZipFileUtils.getFilesFromZip(zip, true));
-            } catch (IOException e) {
-                logger.error("Class upload failed. Failed to extract dependencies ZIP file.");
-                messages.add("Class upload failed. Failed to extract dependencies ZIP file.");
-                abortRequestAndCleanUp(request, response, cutDir, compiledClasses);
-                return;
-            }
-            for (int index = 0; index < dependencies.size(); index++) {
-                final JavaFileObject dependencyFile = dependencies.get(index);
-                final Path path = Paths.get(dependencyFile.getName());
-
-                final String dependencyFileName = path.getFileName().toString();
-                final String dependencyFileContent = dependencyFile.getContent();
-
-                if (!dependencyFileName.endsWith(".java")) {
-                    logger.error("Class upload failed. Given file {} was not a .java file.", dependencyFileName);
-                    messages.add("Class upload failed. Dependency must be a .java file.");
-                    abortRequestAndCleanUp(request, response, cutDir, compiledClasses);
-                    return;
-                }
-                if (dependencyFileContent == null) {
-                    logger.error("Class upload failed. Provided fileContent is null. That shouldn't happen.");
-                    messages.add("Class upload failed. Internal error. Sorry about that!");
-                    abortRequestAndCleanUp(request, response, cutDir, compiledClasses);
-                    return;
-                }
-
-                final String depJavaFilePath;
-                try {
-                    final Path folderPath = cutDir.resolve(CUTS_DEPENDENCY_DIR);
-                    depJavaFilePath = FileUtils.storeFile(folderPath, dependencyFileName, dependencyFileContent)
-                            .toString();
-                    final String depClassFilePath = depJavaFilePath.replace(".java", ".class");
-                    dependencyReferences.add(new JavaFileReferences(depJavaFilePath, depClassFilePath));
-                } catch (IOException e) {
-                    logger.error("Class upload failed. Could not store java file " + dependencyFileName, e);
-                    messages.add("Class upload failed. Internal error. Sorry about that!");
-                    abortRequestAndCleanUp(request, response, cutDir, compiledClasses);
-                    return;
-                }
-
-                // Update the existing dependency file with the actually stored file path.
-                // This is required for the compilation of mutants and tests.
-                dependencies.set(index, new JavaFileObject(depJavaFilePath, dependencyFileContent));
-            }
-
-            try {
-                cutClassFilePath = Compiler.compileJavaFileWithDependencies(cutJavaFilePath, dependencies);
-            } catch (CompileException e) {
-                logger.error("Class upload failed. Could not compile {}!\n\n{}", fileName, e.getMessage());
-                messages.add("Class upload failed. Could not compile " + fileName + "!\n" + e.getMessage());
-
-                abortRequestAndCleanUp(request, response, cutDir, compiledClasses);
-                return;
-            } catch (IllegalStateException e) {
-                logger.error("SEVERE ERROR. Could not find Java compiler. Please reconfigure your instance.", e);
-                messages.add("Class upload failed. Internal error. Sorry about that!");
-
-                abortRequestAndCleanUp(request, response, cutDir, compiledClasses);
-                return;
-            }
-        }
 
         String classQualifiedName;
         try {
@@ -454,6 +258,13 @@ public class CreateClassManager extends HttpServlet {
         try {
             cutId = GameClassDAO.storeClass(cut);
         } catch (Exception e) {
+            logger.warn("1 {} ", classQualifiedName);
+            logger.warn("2 {} ", classAlias);
+            logger.warn("3 {} ", cutJavaFilePath);
+            logger.warn("4 {} ", cutClassFilePath);
+            logger.warn("5 {} ", isMockingEnabled);
+            logger.warn("6 {} ", testingFramework);
+            logger.warn("7 {} ", assertionLibrary);
             logger.error("Class upload failed. Could not store class to database.");
             messages.add("Class upload failed. Internal error. Sorry about that!");
             abortRequestAndCleanUp(request, response, cutDir, compiledClasses);
@@ -475,24 +286,6 @@ public class CreateClassManager extends HttpServlet {
                 }
 
                 compiledClasses.add(new CompiledClass(CompileClassType.DEPENDENCY, depId));
-            }
-        }
-
-        if (mutantsZipFile != null) {
-            final boolean failed = addMutants(request, response, compiledClasses,
-                    cutId, cutFileName, cutDir, mutantsZipFile, dependencies);
-            if (failed) {
-                // tests zip failed and abort method has been called.
-                return;
-            }
-        }
-
-        if (testsZipFile != null) {
-            final boolean failed = addTests(request, response, compiledClasses,
-                    cutId, cutDir, cut, testsZipFile, dependencies);
-            if (failed) {
-                // tests zip failed and abort method has been called.
-                return;
             }
         }
 
@@ -545,129 +338,7 @@ public class CreateClassManager extends HttpServlet {
      * @return {@code true} if addition fails, {@code fail} otherwise.
      * @throws IOException when aborting the request fails.
      */
-    @SuppressWarnings("Duplicates")
-    private boolean addMutants(HttpServletRequest request, HttpServletResponse response,
-                               List<CompiledClass> compiledClasses, int cutId, String cutFileName, Path cutDir,
-                               SimpleFile mutantsZipFile, List<JavaFileObject> dependencies) throws IOException {
-        boolean withDependencies = !dependencies.isEmpty();
-
-        final String zipFileName = mutantsZipFile.fileName;
-        final byte[] zipFileContent = mutantsZipFile.fileContent;
-
-        if (!zipFileName.endsWith(".zip")) {
-            logger.error("Class upload failed. Given file {} was not a .zip file.", zipFileName);
-            messages.add("Class upload failed. Mutants must be provided in a .zip file.");
-            abortRequestAndCleanUp(request, response, cutDir, compiledClasses);
-            return true;
-        }
-
-        final List<JavaFileObject> mutants;
-        try {
-            final ZipFile zip = ZipFileUtils.createZip(zipFileContent);
-            mutants = ZipFileUtils.getFilesFromZip(zip, true);
-        } catch (IOException e) {
-            logger.error("Class upload failed. Failed to extract mutants ZIP file.");
-            messages.add("Class upload failed. Failed to extract mutants ZIP file.");
-            abortRequestAndCleanUp(request, response, cutDir, compiledClasses);
-            return true;
-        }
-
-        for (int index = 0; index < mutants.size(); index++) {
-            final JavaFileObject mutantFile = mutants.get(index);
-
-            final String fileName = mutantFile.getName();
-            final String fileContent = mutantFile.getContent();
-
-            if (!fileName.endsWith(".java")) {
-                logger.error("Class upload failed. Given file {} was not a .java file.", fileName);
-                messages.add("Class upload failed. Mutant must be a .java file.");
-                abortRequestAndCleanUp(request, response, cutDir, compiledClasses);
-                return true;
-            }
-            if (!fileName.equals(cutFileName)) {
-                logger.error("Class uploaded failed. Mutant {} has not the same class name as CUT, {}",
-                        fileName, cutFileName);
-                messages.add("Class upload failed. Mutants must have same class name as class under test!");
-                abortRequestAndCleanUp(request, response, cutDir, compiledClasses);
-                return true;
-            }
-            if (fileContent == null) {
-                logger.error("Class upload failed. Provided fileContent is null. That shouldn't happen.");
-                messages.add("Class upload failed. Internal error. Sorry about that!");
-                abortRequestAndCleanUp(request, response, cutDir, compiledClasses);
-                return true;
-            }
-
-            String javaFilePath;
-            try {
-
-                final Path folderPath = cutDir.resolve(CUTS_MUTANTS_DIR).resolve(String.valueOf(index));
-                javaFilePath = FileUtils.storeFile(folderPath, fileName, fileContent).toString();
-            } catch (IOException e) {
-                logger.error("Class upload failed. Could not store mutant java file " + fileName, e);
-                messages.add("Class upload failed. Internal error. Sorry about that!");
-                abortRequestAndCleanUp(request, response, cutDir, compiledClasses);
-                return true;
-            }
-            String classFilePath;
-
-            if (!withDependencies) {
-                try {
-                    classFilePath = Compiler.compileJavaFileForContent(javaFilePath, fileContent);
-                } catch (CompileException e) {
-                    logger.error("Class upload failed. Could not compile mutant {}!\n\n{}", fileName, e.getMessage());
-                    messages.add("Class upload failed. Could not compile mutant " + fileName + "!\n" + e.getMessage());
-
-                    abortRequestAndCleanUp(request, response, cutDir, compiledClasses, javaFilePath);
-                    return true;
-                } catch (IllegalStateException e) {
-                    logger.error("SEVERE ERROR. Could not find Java compiler. Please reconfigure your"
-                            + "installed version.", e);
-                    messages.add("Class upload failed. Internal error. Sorry about that!");
-
-                    abortRequestAndCleanUp(request, response, cutDir, compiledClasses, javaFilePath);
-                    return true;
-                }
-            } else {
-                try {
-                    classFilePath = Compiler.compileJavaFileForContentWithDependencies(javaFilePath, fileContent,
-                            dependencies, true);
-                } catch (CompileException e) {
-                    logger.error("Class upload failed. Could not compile mutant {} with dependencies{}!\n\n{}",
-                            fileName, dependencies, e.getMessage());
-                    messages.add("Class upload failed. Could not compile mutant " + fileName + "!\n" + e.getMessage());
-
-                    abortRequestAndCleanUp(request, response, cutDir, compiledClasses, javaFilePath);
-                    return true;
-                } catch (IllegalStateException e) {
-                    logger.error("SEVERE ERROR. Could not find Java compiler. Please reconfigure your"
-                            + "installed version.", e);
-                    messages.add("Class upload failed. Internal error. Sorry about that!");
-
-                    abortRequestAndCleanUp(request, response, cutDir, compiledClasses, javaFilePath);
-                    return true;
-                }
-            }
-
-            int mutantId;
-            final String md5 = CodeValidator.getMD5FromText(fileContent);
-            final Mutant mutant = new Mutant(javaFilePath, classFilePath, md5, cutId);
-            try {
-                mutantId = MutantDAO.storeMutant(mutant);
-                MutantDAO.mapMutantToClass(mutantId, cutId);
-            } catch (Exception e) {
-                logger.error("Class upload with mutant failed. Could not store mutant to database.");
-                messages.add("Class upload failed. Seems like you uploaded two identical mutants.");
-
-                abortRequestAndCleanUp(request, response, cutDir, compiledClasses, javaFilePath, classFilePath);
-                return true;
-            }
-
-            compiledClasses.add(new CompiledClass(CompileClassType.MUTANT, mutantId));
-        }
-        return false;
-    }
-
+ 
     /**
      * Adds the contents of a given zip file as tests uploaded together with
      * a class under test.
@@ -684,114 +355,6 @@ public class CreateClassManager extends HttpServlet {
      * @return {@code true} if addition fails, {@code fail} otherwise.
      * @throws IOException when aborting the request fails.
      */
-    @SuppressWarnings("Duplicates")
-    private boolean addTests(HttpServletRequest request, HttpServletResponse response,
-                             List<CompiledClass> compiledClasses, int cutId, Path cutDir, GameClass cut,
-                             SimpleFile testsZipFile, List<JavaFileObject> dependencies) throws IOException {
-
-        // Class under test is a dependency for all tests
-        dependencies.add(new JavaFileObject(cut.getJavaFile()));
-
-        final String zipFileName = testsZipFile.fileName;
-        final byte[] zipFileContent = testsZipFile.fileContent;
-
-        if (!zipFileName.endsWith(".zip")) {
-            logger.error("Class upload failed. Given file {} was not a .zip file.", zipFileName);
-            messages.add("Class upload failed. The tests must be provided in a .zip file.");
-            abortRequestAndCleanUp(request, response, cutDir, compiledClasses);
-            return true;
-        }
-
-        final List<JavaFileObject> tests;
-        try {
-            final ZipFile zip = ZipFileUtils.createZip(zipFileContent);
-            tests = ZipFileUtils.getFilesFromZip(zip, true);
-        } catch (IOException e) {
-            logger.error("Class upload failed. Failed to extract tests ZIP file.");
-            messages.add("Class upload failed. Failed to extract tests ZIP file.");
-            abortRequestAndCleanUp(request, response, cutDir, compiledClasses);
-            return true;
-        }
-
-        for (int index = 0; index < tests.size(); index++) {
-            final JavaFileObject testFile = tests.get(index);
-
-            final String fileName = testFile.getName();
-            final String fileContent = testFile.getContent();
-
-            if (!fileName.endsWith(".java")) {
-                logger.error("Class upload failed. Given file {} was not a .java file.", fileName);
-                messages.add("Class upload failed. The tests files must be .java file.");
-                abortRequestAndCleanUp(request, response, cutDir, compiledClasses);
-                return true;
-            }
-            if (fileContent == null) {
-                logger.error("Class upload failed. Provided fileContent is null. That shouldn't happen.");
-                messages.add("Class upload failed. Internal error. Sorry about that!");
-                abortRequestAndCleanUp(request, response, cutDir, compiledClasses);
-                return true;
-            }
-
-            String javaFilePath;
-            try {
-                final Path folderPath = cutDir.resolve(CUTS_TESTS_DIR).resolve(String.valueOf(index));
-                javaFilePath = FileUtils.storeFile(folderPath, fileName, fileContent).toString();
-            } catch (IOException e) {
-                logger.error("Class upload failed. Could not store java file of test class " + fileName, e);
-                messages.add("Class upload failed. Could not store java file of test class " + fileName);
-
-                abortRequestAndCleanUp(request, response, cutDir, compiledClasses);
-                return true;
-            }
-            String classFilePath;
-            try {
-                classFilePath = Compiler.compileJavaTestFileForContent(javaFilePath, fileContent, dependencies, true);
-            } catch (CompileException e) {
-                logger.error("Class upload failed. Could not compile test {}!\n\n{}", fileName, e.getMessage());
-                messages.add("Class upload failed. Could not compile test " + fileName + "!\n" + e.getMessage());
-
-                abortRequestAndCleanUp(request, response, cutDir, compiledClasses, javaFilePath);
-                return true;
-            } catch (IllegalStateException e) {
-                logger.error("SEVERE ERROR. Could not find Java compiler. Please reconfigure your instance.", e);
-                messages.add("Class upload failed. Internal error. Sorry about that!");
-
-                abortRequestAndCleanUp(request, response, cutDir, compiledClasses, javaFilePath);
-                return true;
-            }
-
-            try {
-                final String testDir = Paths.get(javaFilePath).getParent().toString();
-                final String qualifiedName = FileUtils.getFullyQualifiedName(classFilePath);
-
-                // This adds a jacoco.exec file to the testDir
-                backend.testOriginal(cut, testDir, qualifiedName);
-            } catch (Exception e) {
-                logger.error("Class upload failed. Test " + fileName + " failed", e);
-                messages.add("Class upload failed. Test " + fileName + " failed");
-
-                abortRequestAndCleanUp(request, response, cutDir, compiledClasses, javaFilePath, classFilePath);
-                return true;
-            }
-
-            int testId;
-            final LineCoverage lineCoverage = LineCoverageGenerator.generate(cut, Paths.get(javaFilePath));
-            final Test test = new Test(javaFilePath, classFilePath, cutId, lineCoverage);
-            try {
-                testId = TestDAO.storeTest(test);
-                TestDAO.mapTestToClass(testId, cutId);
-            } catch (UncheckedSQLException e) {
-                logger.error("Class upload with mutant failed. Could not store test to database.");
-                messages.add("Class upload failed. Internal error. Sorry about that!");
-
-                abortRequestAndCleanUp(request, response, cutDir, compiledClasses, javaFilePath, classFilePath);
-                return true;
-            }
-
-            compiledClasses.add(new CompiledClass(CompileClassType.TEST, testId));
-        }
-        return false;
-    }
 
     /**
      * Aborts a given request by removing all uploaded compile classes from for
@@ -900,6 +463,10 @@ public class CreateClassManager extends HttpServlet {
             this.fileName = fileName;
             this.fileContent = fileContent;
         }
+
+		public SimpleFile(String className) {
+			// TODO Auto-generated constructor stub
+		}
     }
 
     /**
