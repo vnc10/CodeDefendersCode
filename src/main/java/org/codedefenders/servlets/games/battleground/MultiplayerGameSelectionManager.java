@@ -152,6 +152,11 @@ public class MultiplayerGameSelectionManager extends HttpServlet {
         int automaticEquivalenceTrigger;
         CodeValidatorLevel mutantValidatorLevel;
         Role selectedRole;
+        int attackerCostActivity;
+        int defenderCostActivity;
+        int attackerStartCostActivity;
+        int defenderStartCostActivity;
+
 
         try {
             classId = getIntParameter(request, "class").get();
@@ -169,6 +174,10 @@ public class MultiplayerGameSelectionManager extends HttpServlet {
         }
 
         GameLevel level = parameterThenOrOther(request, "level", GameLevel.EASY, GameLevel.HARD);
+        attackerCostActivity = getIntParameter(request, "costNumberActivity").get();
+        defenderCostActivity = getIntParameter(request, "costNumberActivity").get();
+        attackerStartCostActivity = getIntParameter(request, "startCostNumber").get();
+        defenderStartCostActivity = getIntParameter(request, "startCostNumber").get();
         float lineCoverage = getFloatParameter(request, "line_cov").orElse(1.1f);
         float mutantCoverage = getFloatParameter(request, "mutant_cov").orElse(1.1f);
         boolean chatEnabled = parameterThenOrOther(request, "chatEnabled", true, false);
@@ -179,6 +188,10 @@ public class MultiplayerGameSelectionManager extends HttpServlet {
                 .chatEnabled(chatEnabled)
                 .capturePlayersIntention(capturePlayersIntention)
                 .lineCoverage(lineCoverage)
+                .attackerCostActivity(attackerCostActivity)
+                .defenderCostActivity(defenderCostActivity)
+                .attackerStartCostActivity(attackerStartCostActivity)
+                .defenderStartCostActivity(defenderStartCostActivity)
                 .mutantCoverage(mutantCoverage)
                 .mutantValidatorLevel(mutantValidatorLevel)
                 .automaticMutantEquivalenceThreshold(automaticEquivalenceTrigger)

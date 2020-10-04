@@ -166,9 +166,9 @@ public class CreateClassManager extends HttpServlet {
         cutFile = new SimpleFile(className);
         final List<JavaFileObject> dependencies = new ArrayList<>();
         final String fileName = className;
-        logger.warn("bbb {} ", classCode);
+        //logger.warn("bbb {} ", classCode);
         final String fileContent = classCode;
-        logger.warn("aaa {} ", fileContent);
+        //logger.warn("aaa {} ", fileContent);
         cutFileName = fileName;
         if (fileContent == null) {
             logger.error("Class upload failed. Provided fileContent is null. That shouldn't happen.");

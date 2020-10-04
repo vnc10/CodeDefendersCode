@@ -159,11 +159,14 @@ public class Constants {
     public static final String TEST_KILLED_LAST_MESSAGE = "Great, your test killed the last mutant!";
     public static final String TEST_KILLED_ONE_MESSAGE = "Great, your test killed a mutant!";
     public static final String TEST_KILLED_N_MESSAGE = "Awesome! Your test killed %d mutants!"; // number of mutants
+    public static final String TEST_COST_WARNING = "You can't create a test, because you don't have points.";
+    public static final String COST_WON_MESSAGE = "You won %d points";
 
     public static final String MUTANT_COMPILED_MESSAGE = "Your mutant was compiled successfully.";
     public static final String MUTANT_ACCEPTED_EQUIVALENT_MESSAGE = "The mutant was accepted as equivalent.";
     public static final String MUTANT_UNCOMPILABLE_MESSAGE = "Your mutant failed to compile. Try again.";
-
+    public static final String MUTANT_COST_WARNING = "You can't create a mutant, because you don't have points.";
+    
     public static final String MUTANT_INVALID_MESSAGE = "Invalid mutant, sorry! Your mutant is identical to the CUT or it contains invalid code (ifs, loops, or new logical ops.)";
     public static final String MUTANT_CREATION_ERROR_MESSAGE = "Oops! Something went wrong and the mutant was not created.";
     public static final String MUTANT_DUPLICATED_MESSAGE = "Sorry, your mutant already exists in this game!";

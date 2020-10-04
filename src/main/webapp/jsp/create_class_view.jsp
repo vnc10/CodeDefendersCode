@@ -68,7 +68,7 @@
 				<input type="checkbox" name="prepareForSingle" value="prepare" style="margin-right:5px;">Generate mutants and tests for single-player mode? (It may take a while...)</input>
 				-->
 				<div>
-                    <h3>Upload Class under Test</h3>
+                    <h3>Create Class under Test</h3>
 				<textarea type="text" id="fileCreateCUT" name="fileCreateCUT" class="form-control" rows="20" required></textarea>
 					<br>
 					<span>The class used for games. Mutants are created from and tests are created for this class.</span>
@@ -100,7 +100,7 @@
 				</div>
 				<span class="submit-button">
 					<button id="upload" type="submit" class="fileinput-upload-button btn btn-light">
-						Upload
+						Create
 					</button>
 				</span>
 			</form>

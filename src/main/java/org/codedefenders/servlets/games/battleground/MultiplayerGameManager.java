@@ -41,6 +41,7 @@ import org.codedefenders.game.Mutant;
 import org.codedefenders.game.Role;
 import org.codedefenders.game.Test;
 import org.codedefenders.game.multiplayer.MultiplayerGame;
+import org.codedefenders.game.multiplayer.MultiplayerGame.Builder;
 import org.codedefenders.game.tcs.ITestCaseSelector;
 import org.codedefenders.model.AttackerIntention;
 import org.codedefenders.model.DefenderIntention;
@@ -109,6 +110,8 @@ import static org.codedefenders.util.Constants.TEST_DID_NOT_PASS_ON_CUT_MESSAGE;
 import static org.codedefenders.util.Constants.TEST_GENERIC_ERROR_MESSAGE;
 import static org.codedefenders.util.Constants.TEST_KILLED_CLAIMED_MUTANT_MESSAGE;
 import static org.codedefenders.util.Constants.TEST_PASSED_ON_CUT_MESSAGE;
+import static org.codedefenders.util.Constants.MUTANT_COST_WARNING;
+import static org.codedefenders.util.Constants.TEST_COST_WARNING;
 
 /**
  * This {@link HttpServlet} handles retrieval and in-game management for {@link MultiplayerGame battleground games}.
@@ -341,6 +344,18 @@ public class MultiplayerGameManager extends HttpServlet {
         }
         final String testText = test.get();
 
+        int defenderStartCostActivity = game.getDefenderStartCostActivity();
+        int defenderCostActivity = game.getDefenderCostActivity(); 
+        
+        if (defenderStartCostActivity - defenderCostActivity < 0) {
+        	messages.add(TEST_COST_WARNING);
+            previousSubmission.setTestCode(testText);
+            response.sendRedirect(contextPath + Paths.BATTLEGROUND_GAME + "?gameId=" + gameId);
+        	return;
+        } 
+        
+        else {
+        
         TestSubmittedEvent tse = new TestSubmittedEvent();
         tse.setGameId(gameId);
         tse.setUserId(login.getUserId());
@@ -482,6 +497,9 @@ public class MultiplayerGameManager extends HttpServlet {
                 EventStatus.GAME, timestamp);
         eventDAO.insert(notif);
 
+        defenderStartCostActivity = defenderStartCostActivity - defenderCostActivity;
+        game.setDefenderStartCostActivity(defenderStartCostActivity);
+        boolean updateDefenderCost = MultiplayerGameDAO.updateDefenderCost(game, defenderStartCostActivity);       
         mutationTester.runTestOnAllMultiplayerMutants(game, newTest, messages.getBridge());
         game.update();
         logger.info("Successfully created test {} ", newTest.getId());
@@ -490,11 +508,11 @@ public class MultiplayerGameManager extends HttpServlet {
         ttme.setGameId(gameId);
         ttme.setUserId(login.getUserId());
         notificationService.post(ttme);
-
         // Clean up the session
         previousSubmission.clear();
         session.removeAttribute("selected_lines");
         response.sendRedirect(ctx(request) + Paths.BATTLEGROUND_GAME + "?gameId=" + gameId);
+        }
     }
 
     /**
@@ -587,11 +605,23 @@ public class MultiplayerGameManager extends HttpServlet {
             return;
         }
 
+        int attackerStartCostActivity = game.getAttackerStartCostActivity();
+        int attackerCostActivity = game.getAttackerCostActivity() * 2; 
+        
+        if (attackerStartCostActivity - attackerCostActivity < 0) {
+        	messages.add(MUTANT_COST_WARNING);
+            previousSubmission.setMutantCode(mutantText);
+            response.sendRedirect(contextPath + Paths.BATTLEGROUND_GAME + "?gameId=" + gameId);
+        	return;
+        } 
+        else {
+
         MutantSubmittedEvent mse = new MutantSubmittedEvent();
         mse.setGameId(gameId);
         mse.setUserId(login.getUserId());
         notificationService.post(mse);
 
+        
         // Do the validation even before creating the mutant
         CodeValidatorLevel codeValidatorLevel = game.getMutantValidatorLevel();
         ValidationMessage validationMessage =
@@ -662,7 +692,7 @@ public class MultiplayerGameManager extends HttpServlet {
         mce.setErrorMessage(errorMessage);
 
         if (!compileSuccess) {
-            messages.add(MUTANT_UNCOMPILABLE_MESSAGE).fadeOut(false);
+        	messages.add(MUTANT_UNCOMPILABLE_MESSAGE).fadeOut(false);
             // There's a ton of defensive programming here...
             if (errorMessage != null) {
                 // We escape the content of the message for new tests since user can embed there anything
@@ -679,13 +709,15 @@ public class MultiplayerGameManager extends HttpServlet {
             response.sendRedirect(contextPath + Paths.BATTLEGROUND_GAME + "?gameId=" + gameId);
             return;
         }
-
         messages.add(MUTANT_COMPILED_MESSAGE);
         final String notificationMsg = login.getUser().getUsername() + " created a mutant.";
         Event notif = new Event(-1, gameId, login.getUserId(), notificationMsg, EventType.ATTACKER_MUTANT_CREATED,
                 EventStatus.GAME, new Timestamp(System.currentTimeMillis() - 1000));
         eventDAO.insert(notif);
 
+        attackerStartCostActivity = attackerStartCostActivity - attackerCostActivity;
+        game.setAttackerCostActivity(attackerStartCostActivity);
+        boolean updateAttackerCost = MultiplayerGameDAO.updateAttackerCost(game, attackerStartCostActivity);
         mutationTester.runAllTestsOnMutant(game, newMutant, messages.getBridge());
         game.update();
 
@@ -707,11 +739,14 @@ public class MultiplayerGameManager extends HttpServlet {
             collectAttackerIntentions(newMutant, intention);
         }
         // Clean the mutated code only if mutant is accepted
+        
+        
         previousSubmission.clear();
         logger.info("Successfully created mutant {} ", newMutant.getId());
         response.sendRedirect(ctx(request) + Paths.BATTLEGROUND_GAME + "?gameId=" + gameId);
-    }
+        }
 
+    }
     @SuppressWarnings("Duplicates")
     private void resolveEquivalence(HttpServletRequest request,
                                     HttpServletResponse response,

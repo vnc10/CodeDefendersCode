@@ -43,14 +43,16 @@ public abstract class AbstractGame {
     protected static final Logger logger = LoggerFactory.getLogger(AbstractGame.class);
 
     protected GameClass cut;
-
+    protected int attackerCostActivity;
+    protected int attackerStartCostActivity;
+    protected int defenderCostActivity;
+    protected int defenderStartCostActivity;
     protected int id;
     protected int classId;
     protected int creatorId;
     protected GameState state;
     protected GameLevel level;
     protected GameMode mode;
-
     protected List<Event> events;
     protected List<Mutant> mutants;
     protected List<Test> tests;
@@ -110,7 +112,30 @@ public abstract class AbstractGame {
     public void setLevel(GameLevel level) {
         this.level = level;
     }
-
+    public int getAttackerStartCostActivity() {
+        return attackerStartCostActivity;
+    }
+    
+    public int getAttackerCostActivity() {
+        return attackerCostActivity;
+    }
+    
+    public void setAttackerCostActivity(int attackerStartCostActivity) {
+    	this.attackerStartCostActivity = attackerStartCostActivity;
+    }
+    
+    public int getDefenderStartCostActivity() {
+        return defenderStartCostActivity;
+    }
+    
+    public int getDefenderCostActivity() {
+        return defenderCostActivity;
+    }
+    
+    public void setDefenderStartCostActivity(int defenderStartCostActivity) {
+    	this.defenderStartCostActivity = defenderStartCostActivity;
+    }
+    
     public GameMode getMode() {
         return this.mode;
     }

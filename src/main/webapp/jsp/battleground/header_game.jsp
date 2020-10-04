@@ -84,6 +84,13 @@
                    data-target="#playerFeedback">
                     Feedback
                 </a>
+               <% if (game.getRole(login.getUserId()) == Role.DEFENDER) { %>
+				<input name="defenderSCostActivity" value="Cost: <%= game.getDefenderCostActivity() %>" disabled style="color: black; font-size: 18px; padding: 5px;"/>
+				<input name="defenderStartCostActivity" value="Points: <%= game.getDefenderStartCostActivity() %>" disabled style="color: black; font-size: 18px; padding: 5px;"/>
+               <% } else if (game.getRole(login.getUserId()) == Role.ATTACKER) { %>
+                <input name="attackerCostActivity" value="Cost: <%= 2*game.getAttackerCostActivity() %>" disabled style="color: black; font-size: 18px; padding: 5px;"/>
+                <input name="attackerStartCostActivity" value="Points: <%= game.getAttackerStartCostActivity() %>" disabled style="color: black; font-size: 18px; padding: 5px;"/>
+               <% } %>
             </div>
         </div>
     </nav>

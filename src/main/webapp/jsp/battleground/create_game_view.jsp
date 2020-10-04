@@ -114,6 +114,26 @@
                 </td>
             </tr>
             <tr>
+                <td title="Cost number to every activity">
+                    Cost number to every activity
+                </td>
+                <td id="costNumberActivityTd">
+                    <input class="form-control" type="number" value="1"
+                           name="costNumberActivity"
+                           id="costNumberActivity" min=1 required/>
+                </td>
+            </tr>
+            <tr>
+                <td title="Start cost number for the team">
+                    Start cost number
+                </td>
+                <td id="startCostNumberTd">
+                    <input class="form-control" type="number" value="10"
+                           name="startCostNumber"
+                           id="startCostNumber" min=10 required/>
+                </td>
+            </tr>  
+            <tr>
                 <td title="Maximum number of assertions per test. Increase this for difficult to test classes.">
                     Max. Assertions per Test
                 </td>

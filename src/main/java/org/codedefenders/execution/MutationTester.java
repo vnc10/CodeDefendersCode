@@ -20,6 +20,7 @@ package org.codedefenders.execution;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.codedefenders.database.EventDAO;
+import org.codedefenders.database.MultiplayerGameDAO;
 import org.codedefenders.database.MutantDAO;
 import org.codedefenders.database.TargetExecutionDAO;
 import org.codedefenders.database.UserDAO;
@@ -56,6 +57,7 @@ import static org.codedefenders.util.Constants.TEST_KILLED_N_MESSAGE;
 import static org.codedefenders.util.Constants.TEST_KILLED_ONE_MESSAGE;
 import static org.codedefenders.util.Constants.TEST_KILLED_ZERO_MESSAGE;
 import static org.codedefenders.util.Constants.TEST_SUBMITTED_MESSAGE;
+import static org.codedefenders.util.Constants.COST_WON_MESSAGE;
 
 /**
  * Class that handles compilation and testing by creating a Process with the
@@ -157,6 +159,9 @@ public class MutationTester implements IMutationTester {
         // test.update();
         test.incrementScore(Scorer.score(game, test, killedMutants));
 
+        int defenderStartCostActivity = game.getDefenderStartCostActivity();
+        int defenderCostActivity = game.getDefenderCostActivity(); 
+        
         if (killed == 0) {
             if (mutants.size() == 0) {
                 messages.add(TEST_SUBMITTED_MESSAGE);
@@ -171,13 +176,20 @@ public class MutationTester implements IMutationTester {
             eventDAO.insert(notif);
 
             if (killed == 1) {
-                if (mutants.size() == 1) {
-                    messages.add(TEST_KILLED_LAST_MESSAGE);
+                int resultDefender = defenderStartCostActivity + defenderCostActivity;
+            	if (mutants.size() == 1) {
+            		messages.add(String.format(COST_WON_MESSAGE, killed));
+                	messages.add(TEST_KILLED_LAST_MESSAGE);
                 } else {
-                    messages.add(TEST_KILLED_ONE_MESSAGE);
+            		messages.add(String.format(COST_WON_MESSAGE, killed));
+                	messages.add(TEST_KILLED_ONE_MESSAGE);
                 }
+            	boolean updateDefenderCost = MultiplayerGameDAO.updateDefenderCost(game, resultDefender);
             } else {
-                messages.add(String.format(TEST_KILLED_N_MESSAGE, killed));
+            	int resultDefender = defenderStartCostActivity + defenderCostActivity*killed;
+            	boolean updateDefenderCost = MultiplayerGameDAO.updateDefenderCost(game, resultDefender);
+            	messages.add(String.format(TEST_KILLED_N_MESSAGE, killed));
+        		messages.add(String.format(COST_WON_MESSAGE, killed));
             }
 
         }
@@ -278,8 +290,13 @@ public class MutationTester implements IMutationTester {
             TestScheduler scheduler) {
         // Schedule the executable tests submitted by the defenders only (true)
         List<Test> tests = scheduler.scheduleTests(game.getTests(true));
-
+        
         User u = UserDAO.getUserForPlayer(mutant.getPlayerId());
+        
+        int attackerStartCostActivity = game.getAttackerStartCostActivity();
+        int attackerCostActivity = game.getAttackerCostActivity()*2; 
+        int defenderStartCostActivity = game.getDefenderStartCostActivity();
+        int defenderCostActivity = game.getDefenderCostActivity(); 
 
         for (Test test : tests) {
             if (useMutantCoverage && !test.isMutantCovered(mutant)) {
@@ -288,7 +305,9 @@ public class MutationTester implements IMutationTester {
             }
 
             if (testVsMutant(test, mutant)) {
-                logger.info("Test {} kills mutant {}", test.getId(), mutant.getId());
+            	int resultDefender = defenderStartCostActivity + defenderCostActivity;
+            	boolean updateDefenderCost = MultiplayerGameDAO.updateDefenderCostAbstract(game, resultDefender);
+            	logger.info("Test {} kills mutant {}", test.getId(), mutant.getId());
                 messages.add(String.format(MUTANT_KILLED_BY_TEST_MESSAGE, test.getId()));
                 if (game instanceof MultiplayerGame) {
                     ArrayList<Mutant> mlist = new ArrayList<>();
@@ -323,15 +342,21 @@ public class MutationTester implements IMutationTester {
             // mutant.update();
             mutant.incrementScore(1 + Scorer.score((MultiplayerGame) game, mutant, missedTests));
         }
-
+        
         int nbRelevantTests = missedTests.size();
         // Mutant survived
         if (nbRelevantTests == 0) {
             messages.add(MUTANT_SUBMITTED_MESSAGE);
         } else if (nbRelevantTests <= 1) {
-            messages.add(MUTANT_ALIVE_1_MESSAGE);
+            int resultDefender = attackerStartCostActivity + attackerCostActivity;
+        	boolean updateAttackerCost2 = MultiplayerGameDAO.updateAttackerCostAbstract(game, resultDefender);
+    		messages.add(String.format(COST_WON_MESSAGE, nbRelevantTests*attackerCostActivity));
+        	messages.add(MUTANT_ALIVE_1_MESSAGE);
         } else {
-            messages.add(String.format(MUTANT_ALIVE_N_MESSAGE, nbRelevantTests));
+            int resultDefender = attackerStartCostActivity + attackerCostActivity*nbRelevantTests;
+        	boolean updateAttackerCost2 = MultiplayerGameDAO.updateAttackerCostAbstract(game, resultDefender);
+    		messages.add(String.format(COST_WON_MESSAGE, nbRelevantTests*attackerCostActivity));
+        	messages.add(String.format(MUTANT_ALIVE_N_MESSAGE, nbRelevantTests));
         }
         Event notif = new Event(-1, game.getId(), u.getId(), u.getUsername() + "&#39;s mutant survives the test suite.",
                 EventType.ATTACKER_MUTANT_SURVIVED, EventStatus.GAME, new Timestamp(System.currentTimeMillis()));
