@@ -41,8 +41,7 @@
 %>
 <div id="creategame" class="container">
     <p>
-        Before you can start games, please <a href="<%=request.getContextPath() + Paths.CLASS_UPLOAD%>" class="text-center new-account">upload a class under
-        test</a>.
+		Before you can start games, please <a href="<%=request.getContextPath() + Paths.CLASS_UPLOAD%>" class="text-center new-account">upload a class </a> or <a href="<%=request.getContextPath() + Paths.CREATE_CLASS%>" class="text-center new-account">create a class under test </a>
     </p>
 </div>
 <%

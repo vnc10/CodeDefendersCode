@@ -29,7 +29,7 @@
 	<div class="w-100 up">
 		<h2>Create Class</h2>
 		<div id="divUpload">
-			<form id="formUpload" action="<%=request.getContextPath() + Paths.CREATE_CLASS%>" class="form-upload" method="post">
+			<form novalidate id="formUpload" action="<%=request.getContextPath() + Paths.CREATE_CLASS%>" class="form-upload" method="post">
 				<span class="label label-danger" id="invalid_class_name" style="color: white;visibility: hidden">Java class name must be .java</span>
 				<input id="className" onkeyup="validateClassName()" name="className" type="text" class="form-control" placeholder="Class name" required>
 				<input type="hidden" value="<%=request.getParameter("fromAdmin")%>" name="fromAdmin">
@@ -69,7 +69,8 @@
 				-->
 				<div>
                     <h3>Create Class under Test</h3>
-				<textarea type="text" id="fileCreateCUT" name="fileCreateCUT" class="form-control" rows="20" required></textarea>
+						<jsp:include page="/jsp/game_components/create_class_editor.jsp"/>
+				<%-- <textarea type="text" id="fileCreateCUT" name="fileCreateCUT" class="form-control" rows="20" required></textarea> --%>
 					<br>
 					<span>The class used for games. Mutants are created from and tests are created for this class.</span>
 				</div>
