@@ -23,6 +23,7 @@ import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.FilenameUtils;
+import org.codedefenders.beans.game.OldCode;
 import org.codedefenders.beans.user.LoginBean;
 import org.codedefenders.beans.message.MessagesBean;
 import org.codedefenders.database.AdminDAO;
@@ -94,7 +95,10 @@ import static org.codedefenders.util.Constants.CUTS_TESTS_DIR;
 @WebServlet(org.codedefenders.util.Paths.CREATE_CLASS)
 public class CreateClassManager extends HttpServlet {
     private static final Logger logger = LoggerFactory.getLogger(CreateClassManager.class);
-
+    
+    @Inject
+    private OldCode oldCode;
+    
     @Inject
     private MessagesBean messages;
 
@@ -166,7 +170,6 @@ public class CreateClassManager extends HttpServlet {
         cutFile = new SimpleFile(className);
         final List<JavaFileObject> dependencies = new ArrayList<>();
         final String fileName = className;
-        //logger.warn("bbb {} ", classCode);
         final String fileContent = classCode;
         //logger.warn("aaa {} ", fileContent);
         cutFileName = fileName;
@@ -205,7 +208,8 @@ public class CreateClassManager extends HttpServlet {
             } catch (CompileException e) {
                 logger.error("Class upload failed. Could not compile {}!\n\n{}", fileName, e.getMessage());
                 messages.add("Class upload failed. Could not compile " + fileName + "!\n" + e.getMessage());
-
+                oldCode = (OldCode) request.getSession().getAttribute("oldCode");
+                oldCode.setTestCode(fileContent);            
                 abortRequestAndCleanUp(request, response, cutDir, compiledClasses);
                 return;
             } catch (IllegalStateException e) {

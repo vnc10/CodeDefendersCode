@@ -20,10 +20,11 @@
 --%>
 
 <%-- <jsp:useBean id="testEditor" class="org.codedefenders.beans.game.TestEditorBean" scope="request"/> --%>
-<pre><textarea type="text" id="fileCreateCUT" name="fileCreateCUT" class="form-control" rows="20" required></textarea></pre>
+<jsp:useBean id="oldCode" class="org.codedefenders.beans.game.OldCode" scope="session"/>
+<pre><textarea type="text" id="fileCreateCUT" name="fileCreateCUT" class="form-control" rows="20" required><%=  oldCode.getTestCode() %></textarea></pre>
 <script>
 (function () {
-    let editorTest = CodeMirror.fromTextArea(document.getElementById("fileCreateCUT"), {
+	let editorTest = CodeMirror.fromTextArea(document.getElementById("fileCreateCUT"), {
         lineNumbers: true,
         indentUnit: 4,
         smartIndent: true,
