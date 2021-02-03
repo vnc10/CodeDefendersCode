@@ -276,7 +276,7 @@ public class CreateClassManager extends HttpServlet {
                 compiledClasses.add(new CompiledClass(CompileClassType.DEPENDENCY, depId));
             }
         }
-
+        oldCode.clear();
         messages.add("Class upload successful.");
         logger.info("Class upload of {} was successful", cutFileName);
 
