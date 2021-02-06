@@ -297,10 +297,11 @@ public class MutationTester implements IMutationTester {
         int attackerCostActivity = game.getAttackerCostActivity()*2; 
         int defenderStartCostActivity = game.getDefenderStartCostActivity();
         int defenderCostActivity = game.getDefenderCostActivity(); 
+        int count = 0;
 
         for (Test test : tests) {
             if (useMutantCoverage && !test.isMutantCovered(mutant)) {
-                logger.info("Skipping non-covered mutant " + mutant.getId() + ", test " + test.getId());
+            	logger.info("Skipping non-covered mutant " + mutant.getId() + ", test " + test.getId());
                 continue;
             }
 
@@ -342,10 +343,12 @@ public class MutationTester implements IMutationTester {
             // mutant.update();
             mutant.incrementScore(1 + Scorer.score((MultiplayerGame) game, mutant, missedTests));
         }
-        
         int nbRelevantTests = missedTests.size();
+        int TotalMutantsCreated = mutant.getTotalMutantsCreated();
         // Mutant survived
         if (nbRelevantTests == 0) {
+        	int result = attackerStartCostActivity - (attackerCostActivity*TotalMutantsCreated);
+            boolean updateAttackerCost2 = MultiplayerGameDAO.updateAttackerCostAbstract(game, result);
             messages.add(MUTANT_SUBMITTED_MESSAGE);
         } else if (nbRelevantTests <= 1) {
             int resultDefender = attackerStartCostActivity + attackerCostActivity;

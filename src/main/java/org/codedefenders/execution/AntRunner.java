@@ -49,6 +49,9 @@ import static org.codedefenders.util.Constants.AI_DIR;
 import static org.codedefenders.util.Constants.CUTS_DEPENDENCY_DIR;
 import static org.codedefenders.util.Constants.CUTS_DIR;
 import static org.codedefenders.util.Constants.JAVA_CLASS_EXT;
+import static org.codedefenders.util.Constants.MUTANT_ALIVE_1_MESSAGE;
+import static org.codedefenders.util.Constants.MUTANT_ALIVE_N_MESSAGE;
+import static org.codedefenders.util.Constants.MUTANT_COST_WARNING;
 
 /**
  * @author Jose Rojas
@@ -310,6 +313,53 @@ public class AntRunner implements //
         return newMutant;
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    public Mutant compileMutantWithCost(File dir, String javaFile, int gameId, GameClass cut, int ownerId, int attackerStartCostActivity, int attackerCostActivity) {
+
+        // Gets the classname for the mutant from the game it is in
+        AntProcessResult result = runAntTarget("compile-mutant", dir.getAbsolutePath(), null,
+                cut, null, forceLocalExecution);
+
+        logger.info("Compilation result: {}", result);
+
+        Mutant newMutant;
+        // If the input stream returned a 'successful build' message, the mutant compiled correctly
+        if (result.compiled()) {
+            // Create and insert a new target execution recording successful compile, with no message to report, and return its ID
+            // Locate .class file
+            final String compiledClassName = cut.getBaseName() + JAVA_CLASS_EXT;
+            final LinkedList<File> matchingFiles = new LinkedList<>(FileUtils.listFiles(
+                    dir, FileFilterUtils.nameFileFilter(compiledClassName), FileFilterUtils.trueFileFilter()));
+            assert (!matchingFiles.isEmpty()) : "if compilation was successful, .class file must exist";
+            String classFile = matchingFiles.get(0).getAbsolutePath();
+            int playerId = PlayerDAO.getPlayerIdForUserAndGame(ownerId, gameId);
+            newMutant = new Mutant(gameId, cut.getId(), javaFile, classFile, true, playerId, GameDAO.getCurrentRound(gameId));
+            newMutant.computeLinesAndDescription();
+            int TotalMutantsCreated = newMutant.getTotalMutantsCreated();
+            int attackerCost = attackerCostActivity;
+            int attackerStart = attackerStartCostActivity;
+            if (TotalMutantsCreated * attackerCost <= attackerStart){
+                newMutant.insert();
+                TargetExecution newExec = new TargetExecution(0, newMutant.getId(),
+                        TargetExecution.Target.COMPILE_MUTANT, TargetExecution.Status.SUCCESS, null);
+                newExec.insert();
+            }
+        } else {
+            // The mutant failed to compile
+            // New target execution recording failed compile, providing the return messages from the ant javac task
+        	String message = result.getCompilerOutput();
+            logger.error("Failed to compile mutant {}: {}", javaFile, message);
+            int playerId = PlayerDAO.getPlayerIdForUserAndGame(ownerId, gameId);
+            newMutant = new Mutant(gameId, cut.getId(), javaFile, null, false, playerId, GameDAO.getCurrentRound(gameId));
+            newMutant.insert();
+            TargetExecution newExec = new TargetExecution(0, newMutant.getId(),
+                    TargetExecution.Target.COMPILE_MUTANT, TargetExecution.Status.FAIL, message);
+            newExec.insert();
+        }
+        return newMutant;
+    }
     /**
      * {@inheritDoc}
      */

@@ -37,6 +37,8 @@ public interface ClassCompilerService {
      * @return A {@link Mutant} object
      */
     Mutant compileMutant(File dir, String javaFile, int gameId, GameClass cut, int ownerId);
+    
+    Mutant compileMutantWithCost(File dir, String javaFile, int gameId, GameClass cut, int ownerId, int attackerStartCostActivity, int attackerCostActivity);
 
     /**
      * Compiles test.

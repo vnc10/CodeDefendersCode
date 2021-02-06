@@ -111,6 +111,7 @@ import static org.codedefenders.util.Constants.TEST_GENERIC_ERROR_MESSAGE;
 import static org.codedefenders.util.Constants.TEST_KILLED_CLAIMED_MUTANT_MESSAGE;
 import static org.codedefenders.util.Constants.TEST_PASSED_ON_CUT_MESSAGE;
 import static org.codedefenders.util.Constants.MUTANT_COST_WARNING;
+import static org.codedefenders.util.Constants.MUTANT_COST_WARNING_TWO;
 import static org.codedefenders.util.Constants.TEST_COST_WARNING;
 
 /**
@@ -470,7 +471,7 @@ public class MultiplayerGameManager extends HttpServlet {
             // We introduce our decoration
             String decorate = decorateWithLinksToCode(escapedHtml, true, false);
             messages.add(decorate).escape(false);
-            //
+            //AQUI 
             previousSubmission.setTestCode(testText);
             response.sendRedirect(contextPath + Paths.BATTLEGROUND_GAME + "?gameId=" + gameId);
             return;
@@ -664,8 +665,8 @@ public class MultiplayerGameManager extends HttpServlet {
             return;
         }
 
-        Mutant newMutant = gameManagingUtils.createMutant(gameId, game.getClassId(), mutantText,
-                login.getUserId(), MODE_BATTLEGROUND_DIR);
+        Mutant newMutant = gameManagingUtils.createMutantWihCost(gameId, game.getClassId(), mutantText,
+                login.getUserId(), MODE_BATTLEGROUND_DIR, attackerStartCostActivity, attackerCostActivity);
         if (newMutant == null) {
             messages.add(MUTANT_CREATION_ERROR_MESSAGE);
             previousSubmission.setMutantCode(mutantText);
@@ -692,6 +693,7 @@ public class MultiplayerGameManager extends HttpServlet {
         mce.setErrorMessage(errorMessage);
 
         if (!compileSuccess) {
+        	messages.add(MUTANT_COST_WARNING_TWO);
         	messages.add(MUTANT_UNCOMPILABLE_MESSAGE).fadeOut(false);
             // There's a ton of defensive programming here...
             if (errorMessage != null) {
@@ -715,10 +717,10 @@ public class MultiplayerGameManager extends HttpServlet {
                 EventStatus.GAME, new Timestamp(System.currentTimeMillis() - 1000));
         eventDAO.insert(notif);
 
-        attackerStartCostActivity = attackerStartCostActivity - attackerCostActivity;
-        game.setAttackerCostActivity(attackerStartCostActivity);
-        boolean updateAttackerCost = MultiplayerGameDAO.updateAttackerCost(game, attackerStartCostActivity);
         mutationTester.runAllTestsOnMutant(game, newMutant, messages.getBridge());
+        //attackerStartCostActivity = attackerStartCostActivity - attackerCostActivity;
+        //game.setAttackerCostActivity(attackerStartCostActivity);
+        //boolean updateAttackerCost = MultiplayerGameDAO.updateAttackerCost(game, attackerStartCostActivity);
         game.update();
 
         MutantTestedEvent mte = new MutantTestedEvent();

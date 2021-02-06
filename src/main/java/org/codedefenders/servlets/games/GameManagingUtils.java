@@ -146,6 +146,40 @@ public class GameManagingUtils implements IGameManagingUtils {
      * {@inheritDoc}
      */
     @Override
+    public Mutant createMutantWihCost(int gameId, int classId, String mutatedCode, int ownerUserId, String subDirectory, int attackerStartCostActivity, int attackerCostActivity)
+            throws IOException {
+        // Mutant is assumed valid here
+
+        GameClass classMutated = GameClassDAO.getClassForId(classId);
+        String classMutatedBaseName = classMutated.getBaseName();
+
+        Path path = Paths.get(Constants.MUTANTS_DIR, subDirectory, String.valueOf(gameId), String.valueOf(ownerUserId));
+        File newMutantDir = FileUtils.getNextSubDir(path);
+
+        logger.debug("NewMutantDir: {}", newMutantDir.getAbsolutePath());
+        logger.debug("Class Mutated: {} (basename: {})", classMutated.getName(), classMutatedBaseName);
+
+        Path mutantFilePath = newMutantDir.toPath().resolve(classMutatedBaseName + JAVA_SOURCE_EXT);
+
+        List<String> originalCode = FileUtils.readLines(Paths.get(classMutated.getJavaFile()));
+        // Remove invalid diffs, like inserting blank lines
+
+        String cleanedMutatedCode = new MutantUtils().cleanUpMutatedCode(String.join("\n", originalCode), mutatedCode);
+        Files.write(mutantFilePath, cleanedMutatedCode.getBytes());
+
+        // sanity check TODO Phil: Why tho?
+        assert CodeValidator.getMD5FromText(cleanedMutatedCode).equals(CodeValidator.getMD5FromFile(
+                mutantFilePath.toString())) : "MD5 hashes differ between code as text and code from new file";
+
+        // Compile the mutant and add it to the game if possible; otherwise,
+        // TODO: delete these files created?
+        return classCompiler.compileMutantWithCost(newMutantDir, mutantFilePath.toString(), gameId, classMutated, ownerUserId, attackerStartCostActivity, attackerCostActivity);
+    }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public Test createTest(int gameId, int classId, String testText, int ownerUserId, String subDirectory)
             throws IOException {
         GameClass cut = GameClassDAO.getClassForId(classId);

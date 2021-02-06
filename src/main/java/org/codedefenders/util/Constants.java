@@ -166,6 +166,7 @@ public class Constants {
     public static final String MUTANT_ACCEPTED_EQUIVALENT_MESSAGE = "The mutant was accepted as equivalent.";
     public static final String MUTANT_UNCOMPILABLE_MESSAGE = "Your mutant failed to compile. Try again.";
     public static final String MUTANT_COST_WARNING = "You can't create a mutant, because you don't have points.";
+    public static final String MUTANT_COST_WARNING_TWO = "You can't create a mutant, because you are trying to create more mutants than you have points";
     
     public static final String MUTANT_INVALID_MESSAGE = "Invalid mutant, sorry! Your mutant is identical to the CUT or it contains invalid code (ifs, loops, or new logical ops.)";
     public static final String MUTANT_CREATION_ERROR_MESSAGE = "Oops! Something went wrong and the mutant was not created.";
